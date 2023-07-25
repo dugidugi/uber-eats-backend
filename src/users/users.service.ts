@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateAccountInputDto } from './dtos/create-account.dto';
+import { LoginInputDto, LoginOutputDto } from './dtos/login.dto';
 
 @Injectable()
 export class UsersService {
@@ -35,7 +36,36 @@ export class UsersService {
       };
     } catch (error) {
       console.log(error);
-      throw InternalServerErrorException;
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async login({
+    email,
+    password,
+  }: LoginInputDto): Promise<{ ok: boolean; error?: string; token?: string }> {
+    try {
+      const user = await this.users.findOne({ where: { email } });
+      if (!user) {
+        return {
+          ok: false,
+          error: 'user not found',
+        };
+      }
+      const passwordVerified = await user.verifyPassword(password);
+      if (!passwordVerified) {
+        return {
+          ok: false,
+          error: 'wrong password',
+        };
+      }
+      return {
+        ok: true,
+        token: 'temperal token',
+      };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
     }
   }
 }
