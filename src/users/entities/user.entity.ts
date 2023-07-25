@@ -7,6 +7,7 @@ import {
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, Column, Entity } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { InternalServerErrorException } from '@nestjs/common';
 
 enum UserRole {
   Client = 'CLIENT',
@@ -33,7 +34,12 @@ export class User extends CoreEntity {
   role: UserRole;
 
   @BeforeInsert()
-  async encryptPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
+  async encryptPassword(): Promise<void> {
+    try {
+      this.password = await bcrypt.hash(this.password, 10);
+    } catch (error) {
+      console.log(error);
+      throw InternalServerErrorException;
+    }
   }
 }
