@@ -47,7 +47,7 @@ console.log(process.env.NODE_ENV);
     RestaurantsModule,
     UsersModule,
     CommonModule,
-    JwtModule,
+    JwtModule.fotRoot(),
   ],
   controllers: [],
   providers: [],
