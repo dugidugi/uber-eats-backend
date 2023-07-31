@@ -16,6 +16,7 @@ import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { jwtMiddleWare } from './jwt/jwt.middleware';
+import { AuthModule } from './auth/auth.module';
 
 console.log(process.env.NODE_ENV);
 
@@ -49,11 +50,13 @@ console.log(process.env.NODE_ENV);
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       autoSchemaFile: true,
+      context: ({ req }) => ({ user: req['user'] }),
     }),
     RestaurantsModule,
     UsersModule,
     CommonModule,
     JwtModule.forRoot({ tokenSecret: process.env.TOKEN_SECRET }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],
