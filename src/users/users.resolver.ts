@@ -5,6 +5,7 @@ import {
   CreateAccountOutputDto,
 } from './dtos/create-account.dto';
 import { LoginInputDto, LoginOutputDto } from './dtos/login.dto';
+import { User } from './entities/user.entity';
 
 @Resolver()
 export class UsersResolver {
@@ -13,6 +14,11 @@ export class UsersResolver {
   @Query(() => String)
   getAll() {
     return this.usersService.getAll();
+  }
+
+  @Query(() => Boolean)
+  me() {
+    return true;
   }
 
   @Mutation(() => CreateAccountOutputDto)

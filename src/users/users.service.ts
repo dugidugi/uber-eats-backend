@@ -14,7 +14,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly users: Repository<User>,
     private readonly config: ConfigService,
-    private readonly jwtservice: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   getAll() {
@@ -65,11 +65,21 @@ export class UsersService {
         };
       }
 
-      const token = jwt.sign({ id: user.id }, this.config.get('TOKEN_SECRET'));
+      const token = this.jwtService.sign(user.id);
+
       return {
         ok: true,
         token,
       };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async findById(id: number): Promise<User> {
+    try {
+      return this.users.findOne({ where: { id } });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
