@@ -1,14 +1,15 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import {
-  CreateAccountInputDto,
-  CreateAccountOutputDto,
+  CreateAccountInput,
+  CreateAccountOutput,
 } from './dtos/create-account.dto';
-import { LoginInputDto, LoginOutputDto } from './dtos/login.dto';
+import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthUser } from 'src/auth/auth-user.decorator';
+import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 
 @Resolver()
 export class UsersResolver {
@@ -25,10 +26,10 @@ export class UsersResolver {
     return authUser;
   }
 
-  @Mutation(() => CreateAccountOutputDto)
+  @Mutation(() => CreateAccountOutput)
   async createAccount(
-    @Args('input') createAccountInputDto: CreateAccountInputDto,
-  ): Promise<CreateAccountOutputDto> {
+    @Args('input') createAccountInputDto: CreateAccountInput,
+  ): Promise<CreateAccountOutput> {
     try {
       return this.usersService.createAccount(createAccountInputDto);
     } catch (error) {
@@ -40,15 +41,36 @@ export class UsersResolver {
   }
 
   @Mutation(() => Boolean)
-  async login(
-    @Args('input') loginInputDto: LoginInputDto,
-  ): Promise<LoginOutputDto> {
+  async login(@Args('input') loginInputDto: LoginInput): Promise<LoginOutput> {
     try {
       return this.usersService.login(loginInputDto);
     } catch (error) {
       return {
         error,
         ok: false,
+      };
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => UserProfileOutput)
+  async userProfile(
+    @Args() userProfileInput: UserProfileInput,
+  ): Promise<UserProfileOutput> {
+    try {
+      const user = await this.usersService.findById(userProfileInput.userId);
+      if (!user) {
+        throw Error();
+      }
+      console.log('user', user);
+      return {
+        ok: true,
+        user,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'User Not Found',
       };
     }
   }
