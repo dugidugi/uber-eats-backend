@@ -2,15 +2,17 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateAccountInput } from './dtos/create-account.dto';
+import {
+  CreateAccountInput,
+  CreateAccountOutput,
+} from './dtos/create-account.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
-import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
-import { EditProfileInput } from './dtos/edit-profile.dto';
-import { VerifyEmailInput } from './dtos/verify-email.dto';
+import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
+import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { Verification } from './entities/verification.entity';
-import e from 'express';
+import { UserProfileOutput } from './dtos/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -33,7 +35,7 @@ export class UsersService {
     email,
     password,
     role,
-  }: CreateAccountInput): Promise<{ ok: boolean; error?: string }> {
+  }: CreateAccountInput): Promise<CreateAccountOutput> {
     try {
       const exists = await this.users.findOne({ where: { email } });
       if (exists) {
@@ -52,21 +54,20 @@ export class UsersService {
         ok: true,
       };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+      return {
+        ok: false,
+        error: 'Could not create account',
+      };
     }
   }
 
-  async login({
-    email,
-    password,
-  }: LoginInput): Promise<{ ok: boolean; error?: string; token?: string }> {
+  async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
-      console.log(email, password);
       const user = await this.users.findOne({
         where: { email },
         select: ['id', 'password'],
       });
+
       if (!user) {
         return {
           ok: false,
@@ -88,21 +89,40 @@ export class UsersService {
         token,
       };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+      return {
+        ok: false,
+        error,
+      };
     }
   }
 
-  async findById(id: number): Promise<User> {
+  async findById(id: number): Promise<UserProfileOutput> {
     try {
-      return this.users.findOne({ where: { id } });
+      const user = await this.users.findOne({ where: { id } });
+
+      if (!user) {
+        return {
+          ok: false,
+          error: 'User Not Found',
+        };
+      }
+
+      return {
+        ok: true,
+        user,
+      };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+      return {
+        ok: false,
+        error,
+      };
     }
   }
 
-  async editProfile(userId: number, { email, password }: EditProfileInput) {
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<EditProfileOutput> {
     try {
       const user = await this.users.findOne({ where: { id: userId } });
       if (email) {
@@ -111,14 +131,19 @@ export class UsersService {
       if (password) {
         user.password = password;
       }
-      return this.users.save(user);
+      await this.users.save(user);
+      return {
+        ok: true,
+      };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+      return {
+        ok: false,
+        error,
+      };
     }
   }
 
-  async verifyEmail({ code }: VerifyEmailInput) {
+  async verifyEmail({ code }: VerifyEmailInput): Promise<VerifyEmailOutput> {
     try {
       const verification = await this.verifications.findOne({
         where: { code },
@@ -126,9 +151,14 @@ export class UsersService {
       });
       verification.user.verified = true;
       await this.users.save(verification.user);
+      return {
+        ok: true,
+      };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException();
+      return {
+        ok: false,
+        error,
+      };
     }
   }
 }
