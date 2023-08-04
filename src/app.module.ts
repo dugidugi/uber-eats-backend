@@ -18,6 +18,7 @@ import { JwtModule } from './jwt/jwt.module';
 import { jwtMiddleWare } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
+import { EmailModule } from './email/email.module';
 
 console.log(process.env.NODE_ENV);
 
@@ -35,6 +36,9 @@ console.log(process.env.NODE_ENV);
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
         TOKEN_SECRET: Joi.string().required(),
+        MAILGUN_API_KEY: Joi.string().required(),
+        MAILGUN_DOMAIN: Joi.string().required(),
+        MAILGUN_FROM_EMAIL: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -58,6 +62,11 @@ console.log(process.env.NODE_ENV);
     CommonModule,
     JwtModule.forRoot({ tokenSecret: process.env.TOKEN_SECRET }),
     AuthModule,
+    EmailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMAIN,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL,
+    }),
   ],
   controllers: [],
   providers: [],
