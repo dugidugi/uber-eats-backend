@@ -54,7 +54,6 @@ export class UsersService {
 
       this.emailService.sendVerificationEmail({
         email,
-        username: user.email,
         code: verification.code,
       });
 
@@ -142,7 +141,6 @@ export class UsersService {
 
         this.emailService.sendVerificationEmail({
           email: user.email,
-          username: user.email,
           code: verification.code,
         });
       }
