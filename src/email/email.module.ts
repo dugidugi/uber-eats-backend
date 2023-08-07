@@ -9,7 +9,6 @@ export class EmailModule {
   static forRoot(options: EmailModuleOptions): DynamicModule {
     return {
       module: EmailModule,
-
       providers: [
         {
           provide: CONFIG_OPTIONS,
@@ -17,6 +16,7 @@ export class EmailModule {
         },
         EmailService,
       ],
+      exports: [EmailService],
     };
   }
 }

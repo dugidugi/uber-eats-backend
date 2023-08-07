@@ -13,6 +13,7 @@ import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 import { Verification } from './entities/verification.entity';
 import { UserProfileOutput } from './dtos/user-profile.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UsersService {
@@ -25,6 +26,7 @@ export class UsersService {
 
     private readonly config: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   getAll() {
@@ -49,6 +51,12 @@ export class UsersService {
 
       const verification = this.verifications.create({ user });
       await this.verifications.save(verification);
+
+      this.emailService.sendVerificationEmail({
+        email,
+        username: user.email,
+        code: verification.code,
+      });
 
       return {
         ok: true,
@@ -127,6 +135,16 @@ export class UsersService {
       const user = await this.users.findOne({ where: { id: userId } });
       if (email) {
         user.email = email;
+        user.verified = false;
+        const verification = await this.verifications.save(
+          this.verifications.create({ user }),
+        );
+
+        this.emailService.sendVerificationEmail({
+          email: user.email,
+          username: user.email,
+          code: verification.code,
+        });
       }
       if (password) {
         user.password = password;

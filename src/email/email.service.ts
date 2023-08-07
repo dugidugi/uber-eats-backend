@@ -12,12 +12,30 @@ export class EmailService {
     // this.sendEmail('testing', 'test');
   }
 
-  private async sendEmail(subject: string, text: string) {
+  private async sendEmail({
+    subject,
+    to,
+    text,
+    options,
+    template,
+  }: {
+    subject: string;
+    to: string;
+    text?: string;
+    options?: object;
+    template: string;
+  }) {
     const form = new FormData();
     form.append('from', `Excited User <mailgun@${this.options.domain}>`);
-    form.append('to', 'yooduck.h@gmail.com');
+    form.append('to', to);
     form.append('subject', subject);
-    form.append('text', text);
+    if (text) {
+      form.append('text', text);
+    }
+    form.append('template', template);
+    if (options) {
+      form.append('t:variables', JSON.stringify(options));
+    }
 
     const response = await got.post(
       `https://api.mailgun.net/v3/${this.options.domain}/messages`,
@@ -30,7 +48,17 @@ export class EmailService {
         body: form,
       },
     );
-
     console.log(response.body);
+  }
+
+  sendVerificationEmail({ email, code }: { email: string; code: string }) {
+    this.sendEmail({
+      subject: 'Verify Your Email',
+      to: email,
+      template: 'verify-email',
+      options: {
+        link: `http://nuber.com/verification/${code}`,
+      },
+    });
   }
 }
