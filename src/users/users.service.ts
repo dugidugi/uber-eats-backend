@@ -146,7 +146,7 @@ export class UsersService {
     } catch (error) {
       return {
         ok: false,
-        error,
+        error: 'Could not update profile',
       };
     }
   }
@@ -157,16 +157,22 @@ export class UsersService {
         where: { code },
         relations: ['user'],
       });
-      verification.user.verified = true;
-      await this.users.save(verification.user);
-      await this.verifications.delete(verification.id);
+      if (verification) {
+        verification.user.verified = true;
+        await this.users.save(verification.user);
+        await this.verifications.delete(verification.id);
+        return {
+          ok: true,
+        };
+      }
       return {
-        ok: true,
+        ok: false,
+        error: 'Verification not found',
       };
     } catch (error) {
       return {
         ok: false,
-        error,
+        error: 'Could not verify email',
       };
     }
   }
