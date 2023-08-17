@@ -32,6 +32,25 @@ describe('EmailService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('sendVerificationEmail', () => {
+    it('should call sendEmail', () => {
+      const sendVerificationEmailArgs = { email: 'email', code: 'code' };
+
+      jest.spyOn(service, 'sendEmail').mockImplementation(async () => {});
+
+      service.sendVerificationEmail(sendVerificationEmailArgs);
+
+      expect(service.sendEmail).toHaveBeenCalledTimes(1);
+      expect(service.sendEmail).toHaveBeenCalledWith({
+        subject: 'Verify Your Email',
+        to: sendVerificationEmailArgs.email,
+        template: 'verify-email',
+        options: {
+          link: `http://nuber.com/verification/${sendVerificationEmailArgs.code}`,
+        },
+      });
+    });
+  });
+
   it.todo('sendEmail');
-  it.todo('sendVerificationEmail');
 });
