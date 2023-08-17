@@ -24,7 +24,7 @@ export class EmailService {
     text?: string;
     options?: object;
     template: string;
-  }) {
+  }): Promise<boolean> {
     const form = new FormData();
     form.append('from', `Excited User <mailgun@${this.options.domain}>`);
     form.append('to', to);
@@ -37,18 +37,22 @@ export class EmailService {
       form.append('t:variables', JSON.stringify(options));
     }
 
-    const response = await got.post(
-      `https://api.mailgun.net/v3/${this.options.domain}/messages`,
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            `api:${this.options.apiKey}`,
-          ).toString('base64')}`,
+    try {
+      const response = await got.post(
+        `https://api.mailgun.net/v3/${this.options.domain}/messages`,
+        {
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              `api:${this.options.apiKey}`,
+            ).toString('base64')}`,
+          },
+          body: form,
         },
-        body: form,
-      },
-    );
-    console.log(response.body);
+      );
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   sendVerificationEmail({ email, code }: { email: string; code: string }) {
