@@ -4,10 +4,12 @@ import { CONFIG_OPTIONS } from 'src/common/common.constant';
 import * as jwt from 'jsonwebtoken';
 
 const TEST_KEY = 'testKey';
+const USER_ID = 1;
 
 jest.mock('jsonwebtoken', () => {
   return {
     sign: jest.fn(() => 'TOKEN'),
+    verify: jest.fn(() => ({ id: 1 })),
   };
 });
 
@@ -33,14 +35,22 @@ describe('JwtService', () => {
 
   describe('sign', () => {
     it('should return a signed token', () => {
-      const userId = 1;
-      const token = service.sign(userId);
+      const token = service.sign(USER_ID);
       expect(token).toEqual(expect.any(String));
       console.log(token);
 
-      expect(jwt.sign).toHaveBeenCalledTimes(userId);
-      expect(jwt.sign).toHaveBeenCalledWith({ id: userId }, TEST_KEY);
+      expect(jwt.sign).toHaveBeenCalledTimes(USER_ID);
+      expect(jwt.sign).toHaveBeenCalledWith({ id: USER_ID }, TEST_KEY);
     });
   });
-  it.todo('verify');
+  describe('verify', () => {
+    it('should return the decoded token', () => {
+      const TOKEN = 'TOKEN';
+      const decoded = service.verify(TOKEN);
+      expect(decoded).toEqual({ id: USER_ID });
+
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
+      expect(jwt.verify).toHaveBeenCalledWith(TOKEN, TEST_KEY);
+    });
+  });
 });
