@@ -12,7 +12,7 @@ export class EmailService {
     // this.sendEmail('testing', 'test');
   }
 
-  private async sendEmail({
+  async sendEmail({
     subject,
     to,
     text,
