@@ -1,14 +1,15 @@
 import { Test } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { CONFIG_OPTIONS } from 'src/common/common.constant';
+import * as FormData from 'form-data';
+import got from 'got';
+
+const TEST_DOMAIN = 'test-domain';
+jest.mock('got');
+jest.mock('form-data');
 
 describe('EmailService', () => {
   let service: EmailService;
-
-  jest.mock('got', () => {});
-  jest.mock('form-data', () => {
-    return { append: jest.fn() };
-  });
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -18,7 +19,7 @@ describe('EmailService', () => {
           provide: CONFIG_OPTIONS,
           useValue: {
             apiKey: 'test-apiKey',
-            domain: 'test-domain',
+            domain: TEST_DOMAIN,
             fromEmail: 'test-fromEmail',
           },
         },
@@ -36,7 +37,7 @@ describe('EmailService', () => {
     it('should call sendEmail', () => {
       const sendVerificationEmailArgs = { email: 'email', code: 'code' };
 
-      jest.spyOn(service, 'sendEmail').mockImplementation(async () => {});
+      jest.spyOn(service, 'sendEmail').mockImplementation(async () => true);
 
       service.sendVerificationEmail(sendVerificationEmailArgs);
 
@@ -52,5 +53,36 @@ describe('EmailService', () => {
     });
   });
 
-  it.todo('sendEmail');
+  describe('sendEmail', () => {
+    it('should send email', async () => {
+      const ok = await service.sendEmail({
+        subject: 'subject',
+        to: 'to',
+        text: 'text',
+        template: 'template',
+      });
+      const formSpy = jest.spyOn(FormData.prototype, 'append');
+      expect(formSpy).toHaveBeenCalled();
+
+      expect(got.post).toHaveBeenCalledTimes(1);
+      expect(got.post).toHaveBeenCalledWith(
+        `https://api.mailgun.net/v3/${TEST_DOMAIN}/messages`,
+        expect.any(Object),
+      );
+      expect(ok).toEqual(true);
+    });
+
+    it('should fail on error', async () => {
+      jest.spyOn(got, 'post').mockImplementation(() => {
+        throw new Error();
+      });
+      const ok = await service.sendEmail({
+        subject: 'subject',
+        to: 'to',
+        text: 'text',
+        template: 'template',
+      });
+      expect(ok).toEqual(false);
+    });
+  });
 });
