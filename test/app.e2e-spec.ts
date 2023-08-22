@@ -14,6 +14,11 @@ jest.mock('got', () => {
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
+  const testUser = {
+    email: 'yooduck.h@gmail.com',
+    password: '12345',
+  };
+  let jwtToken: string;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,7 +45,6 @@ describe('AppController (e2e)', () => {
   });
 
   describe('createAccount', () => {
-    const EMAIL = 'yooduck.h@gmail.com';
     it('should create account', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
@@ -48,8 +52,8 @@ describe('AppController (e2e)', () => {
           query: `
           mutation {
             createAccount(input: {
-              email:"${EMAIL}",
-              password:"12345",
+              email:"${testUser.email}",
+              password:"${testUser.password}",
               role:Owner
             }) {
               ok
@@ -72,8 +76,8 @@ describe('AppController (e2e)', () => {
           query: `
           mutation {
             createAccount(input: {
-              email:"${EMAIL}",
-              password:"12345",
+              email:"${testUser.email}",
+              password:"${testUser.password}",
               role:Owner
             }) {
               ok
@@ -86,6 +90,65 @@ describe('AppController (e2e)', () => {
         .expect((res) => {
           expect(res.body.data.createAccount.ok).toEqual(false);
           expect(res.body.data.createAccount.error).toEqual(expect.any(String));
+        });
+    });
+  });
+  describe('login', () => {
+    it('이메일과 비밀번호가 일치하면 로그인하고 토큰을 반환한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+          mutation {
+            login(input : {
+              email:"${testUser.email}",
+              password:"${testUser.password}",
+            }){
+              ok
+              error
+              token
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              login: { ok, error, token },
+            },
+          } = res.body;
+          expect(ok).toEqual(true);
+          expect(error).toBeNull();
+          expect(token).toEqual(expect.any(String));
+          jwtToken = token;
+        });
+    });
+    it('비밀번호 불일치하면 로그인에 실패한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+          mutation {
+            login(input : {
+              email:"${testUser.email}",
+              password:"wrongPassword",
+            }){
+              ok
+              error
+              token
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              login: { ok, error, token },
+            },
+          } = res.body;
+          expect(ok).toEqual(false);
+          expect(error).toEqual('wrong password');
+          expect(token).toBeNull();
         });
     });
   });
