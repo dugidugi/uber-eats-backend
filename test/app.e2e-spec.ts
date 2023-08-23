@@ -271,6 +271,57 @@ describe('AppController (e2e)', () => {
         });
     });
   });
-  it.todo('editProfile');
+  describe('editProfile', () => {
+    const NEW_EMAIL = 'yooduck.h@naver.com';
+    it('유저가 프로필을 성공적으로 수정한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+          mutation {
+            editProfile(input: {
+              email:"${NEW_EMAIL}"
+            }) {
+              ok
+              error
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              editProfile: { ok, error },
+            },
+          } = res.body;
+          expect(ok).toEqual(true);
+          expect(error).toBeNull();
+        });
+    });
+    it('유저의 메일이 바뀐 것을 확인한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+          {
+            me {
+              email
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              me: { email },
+            },
+          } = res.body;
+          expect(email).toEqual(NEW_EMAIL);
+        });
+    });
+  });
+
   it.todo('verifyEmail');
 });
