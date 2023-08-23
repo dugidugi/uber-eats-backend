@@ -6,6 +6,7 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import e from 'express';
+import { Verification } from 'src/users/entities/verification.entity';
 
 const GRAPHQL_ENDPOINT = '/graphql';
 
@@ -18,6 +19,7 @@ jest.mock('got', () => {
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let usersRepository: Repository<User>;
+  let verificationsRepository: Repository<Verification>;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +28,7 @@ describe('AppController (e2e)', () => {
 
     app = module.createNestApplication();
     usersRepository = module.get(getRepositoryToken(User));
+    verificationsRepository = module.get(getRepositoryToken(Verification));
     await app.init();
   });
 
@@ -323,5 +326,68 @@ describe('AppController (e2e)', () => {
     });
   });
 
-  it.todo('verifyEmail');
+  describe('verifyEmail', () => {
+    let verificationCode: string;
+    beforeAll(async () => {
+      const verifications = await verificationsRepository.find();
+      const [verification] = verifications;
+      console.log(verification);
+      verificationCode = verification.code;
+    });
+    it('유저가 이메일을 성공적으로 인증한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+          mutation{
+            verifyEmail(input: {
+              code: "${verificationCode}"
+            }){
+              ok
+              error
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              verifyEmail: { ok, error },
+            },
+          } = res.body;
+
+          expect(ok).toEqual(true);
+          expect(error).toBeNull();
+        });
+    });
+    it('유저가 이메일 인증에 실패한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+          mutation{
+            verifyEmail(input: {
+              code: "someWrongCode"
+            }){
+              ok
+              error
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              verifyEmail: { ok, error },
+            },
+          } = res.body;
+
+          console.log(res.body.data);
+          expect(ok).toEqual(false);
+          expect(error).toEqual('Verification not found');
+        });
+    });
+  });
 });
