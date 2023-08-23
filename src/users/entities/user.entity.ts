@@ -22,7 +22,7 @@ registerEnumType(UserRole, { name: 'UserRole' }); //graphQL에 enum등록을 위
 @InputType({ isAbstract: true }) //input type은 실제 스키마에서 사용되지는 않지만, 다른 @InputType에서 상속받아 쓸 수 있게됨 ex) extend pickType, partialType으로 쓰이기 위해
 @ObjectType() //graphQL의 object type
 export class User extends CoreEntity {
-  @Column()
+  @Column({ unique: true })
   @Field(() => String)
   @IsEmail()
   email: string;
