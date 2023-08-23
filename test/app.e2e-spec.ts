@@ -5,6 +5,7 @@ import { AppModule } from './../src/app.module';
 import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import e from 'express';
 
 const GRAPHQL_ENDPOINT = '/graphql';
 
@@ -204,7 +205,7 @@ describe('AppController (e2e)', () => {
         .set('X-JWT', jwtToken)
         .send({
           query: `
-            query {
+             {
               userProfile(userId:${22222}){
                 ok,
                 error,
@@ -228,7 +229,48 @@ describe('AppController (e2e)', () => {
         });
     });
   });
-  it.todo('me');
+  describe('me', () => {
+    it('유저가 로그인 되어있으면 유저의 정보를 반환한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query: `
+          {
+            me {
+              email
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const {
+            data: {
+              me: { email },
+            },
+          } = res.body;
+          expect(email).toEqual(testUser.email);
+        });
+    });
+    it('유저가 로그인이 되어있지 않으면 에러를  반환한다', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+          {
+            me {
+              email
+            }
+          }`,
+        })
+        .expect(200)
+        .expect((res) => {
+          const { errors, data } = res.body;
+          expect(errors[0].message).toEqual('Forbidden resource');
+          expect(data).toBeNull();
+        });
+    });
+  });
   it.todo('editProfile');
   it.todo('verifyEmail');
 });
