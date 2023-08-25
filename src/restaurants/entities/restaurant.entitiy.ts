@@ -3,6 +3,7 @@ import { IsString, Length } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { Category } from './category.entitiy';
+import { User } from 'src/users/entities/user.entity';
 
 @InputType({ isAbstract: true })
 @ObjectType()
@@ -19,12 +20,22 @@ export class Restaurant extends CoreEntity {
   @IsString()
   address: string;
 
-  @Field(() => Category)
-  @ManyToOne(() => Category, (category) => category.restaurants)
+  @Field(() => Category, { nullable: true })
+  @ManyToOne(() => Category, (category) => category.restaurants, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   category: Category;
 
   @Field(() => String)
   @Column()
   @IsString()
   coverImg: string;
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, (user) => user.restaurants, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  owner: User;
 }
