@@ -9,8 +9,8 @@ import { User } from 'src/users/entities/user.entity';
 @ObjectType()
 @Entity()
 export class Restaurant extends CoreEntity {
-  @Column()
   @Field(() => String)
+  @Column()
   @IsString()
   @Length(5)
   name: string;
@@ -27,8 +27,8 @@ export class Restaurant extends CoreEntity {
   })
   category: Category;
 
-  @Field(() => String)
-  @Column()
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
   @IsString()
   coverImg: string;
 

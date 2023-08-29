@@ -8,6 +8,7 @@ import {
 } from './dtos/create.restaurant.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Category } from './entities/category.entitiy';
+import { Role } from 'src/auth/auth.decorator';
 
 @Injectable()
 export class RestaurantService {
@@ -18,6 +19,7 @@ export class RestaurantService {
     private readonly categories: Repository<Category>,
   ) {}
 
+  @Role(['Owner'])
   async createRestaurant(
     createRestarantInput: CreateRestaurantInput,
     owner: User,
@@ -28,10 +30,13 @@ export class RestaurantService {
     const categoryName = createRestarantInput.categoryName
       .trim()
       .toLocaleLowerCase();
+
     const categorySlug = categoryName.replace(/ /g, '-');
+
     let category = await this.categories.findOne({
       where: { slug: categorySlug },
     });
+
     if (!category) {
       category = await this.categories.save(
         this.categories.create({ slug: categorySlug, name: categoryName }),
