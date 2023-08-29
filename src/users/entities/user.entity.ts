@@ -12,9 +12,9 @@ import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entitiy';
 
 export enum UserRole {
-  Client = 'CLIENT',
-  Owner = 'OWNER',
-  Rider = 'RIDER',
+  Client = 'Client',
+  Owner = 'Owner',
+  Rider = 'Rider',
 }
 
 registerEnumType(UserRole, { name: 'UserRole' }); //graphQL에 enum등록을 위해 필요
