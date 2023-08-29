@@ -68,6 +68,7 @@ console.log(process.env.NODE_ENV);
       domain: process.env.MAILGUN_DOMAIN,
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],

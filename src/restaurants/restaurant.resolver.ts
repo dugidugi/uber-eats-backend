@@ -6,6 +6,7 @@ import {
 import { RestaurantService } from './restaurant.service';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { User } from 'src/users/entities/user.entity';
+import { Role } from 'src/auth/auth.decorator';
 
 @Resolver()
 export class RestaurantResolver {
@@ -15,7 +16,7 @@ export class RestaurantResolver {
   constructor(restaurantService: RestaurantService) {
     this.restaurantService = restaurantService;
   }
-
+  @Role(['Owner'])
   @Mutation(() => CreateRestaurantOutput)
   async createRestaurants(
     @Args('input') createRestaurantInput: CreateRestaurantInput,
