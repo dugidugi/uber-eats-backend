@@ -13,6 +13,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit.restaurant.dto';
+import { CoreOutput } from 'src/common/dtos/response.entity';
 
 @Injectable()
 export class RestaurantService {
@@ -99,6 +100,30 @@ export class RestaurantService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not edit Restaurant' };
+    }
+  }
+
+  @Role(['Owner'])
+  async deleteRestaurant(
+    owner: User,
+    restaurantId: number,
+  ): Promise<CoreOutput> {
+    try {
+      const restaurant = await this.restaurants.findOneBy({ id: restaurantId });
+      if (!restaurant) {
+        return { ok: false, error: 'Restaurant not found' };
+      }
+      if (restaurant.ownerId !== owner.id) {
+        return {
+          ok: false,
+          error: 'You can not delete a restaurant that you do not own',
+        };
+      }
+
+      await this.restaurants.delete({ id: restaurantId });
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not delete Restaurant' };
     }
   }
 }
