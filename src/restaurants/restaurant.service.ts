@@ -14,6 +14,7 @@ import {
   EditRestaurantOutput,
 } from './dtos/edit.restaurant.dto';
 import { CoreOutput } from 'src/common/dtos/response.entity';
+import { AllCategoriesOutput } from './dtos/all-categories.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -124,6 +125,15 @@ export class RestaurantService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not delete Restaurant' };
+    }
+  }
+
+  async allCategories(): Promise<AllCategoriesOutput> {
+    try {
+      const categories = await this.categories.find();
+      return { ok: true, categories };
+    } catch (error) {
+      return { ok: false, error: 'Could not load categories' };
     }
   }
 }
