@@ -136,4 +136,14 @@ export class RestaurantService {
       return { ok: false, error: 'Could not load categories' };
     }
   }
+
+  async countRestaurants(category: Category): Promise<number> {
+    try {
+      const count = await this.restaurants.countBy({
+        category: { id: category.id },
+      });
+    } catch (error) {
+      return 0;
+    }
+  }
 }
