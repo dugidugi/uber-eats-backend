@@ -16,6 +16,7 @@ import {
   DeleteRestaurantOutput,
 } from './dtos/delete.restaurant.dto';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
+import { Category } from './entities/category.entitiy';
 
 @Resolver()
 export class RestaurantResolver {
@@ -60,7 +61,7 @@ export class RestaurantResolver {
   }
 }
 
-@Resolver()
+@Resolver(() => Category)
 export class CategoryResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
 
