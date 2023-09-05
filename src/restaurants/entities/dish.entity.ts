@@ -1,9 +1,21 @@
-import { Res } from '@nestjs/common';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsNumber, IsString, Length, MinLength, min } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Column, Entity, ManyToOne, RelationId } from 'typeorm';
 import { Restaurant } from './restaurant.entity';
+
+@InputType('DishOptionInputType', { isAbstract: true })
+@ObjectType()
+export class DishOption {
+  @Field((type) => String)
+  name: string;
+
+  @Field((type) => [String], { nullable: true })
+  choices?: string[];
+
+  @Field((type) => Number, { nullable: true })
+  extra?: number;
+}
 
 @InputType('DishInputType', { isAbstract: true })
 @Entity()
@@ -40,4 +52,8 @@ export class Dish extends CoreEntity {
 
   @RelationId((dish: Dish) => dish.restaurant)
   restaurantId: number;
+
+  @Field((type) => [DishOption], { nullable: true })
+  @Column({ type: 'json', nullable: true })
+  options?: DishOption[];
 }
