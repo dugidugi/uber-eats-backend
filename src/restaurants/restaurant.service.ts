@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Restaurant } from './entities/restaurant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
@@ -22,6 +22,8 @@ import {
   SearchRestaurantsInput,
   SearchRestaurantsOutput,
 } from './dtos/search-restaurants.dto';
+import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
+import { Dish } from './entities/dish.entity';
 
 @Injectable()
 export class RestaurantService {
@@ -31,6 +33,9 @@ export class RestaurantService {
 
     @InjectRepository(Category)
     private readonly categories: Repository<Category>,
+
+    @InjectRepository(Dish)
+    private readonly dishes: Repository<Dish>,
   ) {}
 
   private async getOrCreateCategory(name: string) {
@@ -234,6 +239,36 @@ export class RestaurantService {
       };
     } catch (error) {
       return { ok: false, error: 'Could not search for restaurants' };
+    }
+  }
+
+  async createDish(
+    owner: User,
+    createDishInput: CreateDishInput,
+  ): Promise<CreateDishOutput> {
+    try {
+      const restaurant = await this.restaurants.findOne({
+        where: { id: createDishInput.restaurantId },
+      });
+      console.log(restaurant, createDishInput);
+
+      if (!restaurant) {
+        return { ok: false, error: 'Restaurant not found' };
+      }
+
+      if (restaurant.ownerId !== owner.id) {
+        return { ok: false, error: 'only can add dish to own restaurant' };
+      }
+
+      await this.dishes.save(
+        this.dishes.create({
+          ...createDishInput,
+          restaurant,
+        }),
+      );
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not create dish' };
     }
   }
 }
