@@ -5,7 +5,7 @@ import {
   ObjectType,
   PickType,
 } from '@nestjs/graphql';
-import { Restaurant } from '../entities/restaurant.entitiy';
+import { Restaurant } from '../entities/restaurant.entity';
 import { CoreOutput } from 'src/common/dtos/response.entity';
 
 @InputType()

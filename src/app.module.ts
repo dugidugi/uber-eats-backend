@@ -10,7 +10,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { Restaurant } from './restaurants/entities/restaurant.entitiy';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
@@ -19,7 +19,8 @@ import { jwtMiddleWare } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { EmailModule } from './email/email.module';
-import { Category } from './restaurants/entities/category.entitiy';
+import { Category } from './restaurants/entities/category.entity';
+import { Dish } from './restaurants/entities/dish.entity';
 
 console.log(process.env.NODE_ENV);
 
@@ -51,7 +52,7 @@ console.log(process.env.NODE_ENV);
       database: process.env.DB_NAME,
       logging: true,
       synchronize: process.env.NODE_ENV !== 'prod',
-      entities: [Restaurant, User, Verification, Category],
+      entities: [Restaurant, User, Verification, Category, Dish],
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,

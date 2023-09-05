@@ -23,7 +23,7 @@ import {
   DeleteRestaurantOutput,
 } from './dtos/delete.restaurant.dto';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
-import { Category } from './entities/category.entitiy';
+import { Category } from './entities/category.entity';
 import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';

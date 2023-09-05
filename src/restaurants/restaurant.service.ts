@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Restaurant } from './entities/restaurant.entitiy';
+import { Restaurant } from './entities/restaurant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import {
@@ -7,7 +7,7 @@ import {
   CreateRestaurantOutput,
 } from './dtos/create.restaurant.dto';
 import { User } from 'src/users/entities/user.entity';
-import { Category } from './entities/category.entitiy';
+import { Category } from './entities/category.entity';
 import { Role } from 'src/auth/auth.decorator';
 import {
   EditRestaurantInput,

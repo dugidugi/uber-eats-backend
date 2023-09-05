@@ -9,7 +9,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
-import { Restaurant } from 'src/restaurants/entities/restaurant.entitiy';
+import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 
 export enum UserRole {
   Client = 'Client',
