@@ -143,6 +143,8 @@ export class RestaurantService {
       const count = await this.restaurants.countBy({
         category: { id: category.id },
       });
+
+      return count;
     } catch (error) {
       return 0;
     }
@@ -154,12 +156,22 @@ export class RestaurantService {
     try {
       const category = await this.categories.findOne({
         where: { slug: categoryInput.slug },
-        relations: ['restaurants'],
       });
       if (!category) {
         return { ok: false, error: 'Category not found' };
       }
-      return { ok: true, category };
+      const restaurants = await this.restaurants.find({
+        where: { category: { slug: categoryInput.slug } },
+        skip: (categoryInput.page - 1) * 25,
+        take: 25,
+      });
+
+      category.restaurants = restaurants;
+
+      const totalResults = await this.countRestaurants(category);
+      const totalPages = Math.ceil(totalResults / 25);
+
+      return { ok: true, category, restaurants, totalPages, totalResults };
     } catch (error) {
       return { ok: false, error: 'Could not load category' };
     }
