@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Restaurant } from './entities/restaurant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
@@ -24,6 +24,8 @@ import {
 } from './dtos/search-restaurants.dto';
 import { CreateDishInput, CreateDishOutput } from './dtos/create-dish.dto';
 import { Dish } from './entities/dish.entity';
+import { EditDishInput, EditDishOutput } from './dtos/edit-dish.dto';
+import { DeleteDishInput, DeleteDishOutput } from './dtos/delete-dish.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -269,6 +271,56 @@ export class RestaurantService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not create dish' };
+    }
+  }
+
+  async editDish(
+    owner: User,
+    editDishInput: EditDishInput,
+  ): Promise<EditDishOutput> {
+    try {
+      const dish = await this.dishes.findOne({
+        where: { id: editDishInput.dishId },
+        relations: ['restaurant'],
+      });
+
+      if (!dish) {
+        return { ok: false, error: 'Dish not found' };
+      }
+
+      if (dish.restaurant.ownerId !== owner.id) {
+        return { ok: false, error: 'only can edit dish to own restaurant' };
+      }
+
+      await this.dishes.save({ id: dish.id, ...editDishInput });
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not edit dish' };
+    }
+  }
+
+  async deleteDish(
+    owner: User,
+    deleteDishInput: DeleteDishInput,
+  ): Promise<DeleteDishOutput> {
+    try {
+      const dish = await this.dishes.findOne({
+        where: { id: deleteDishInput.dishId },
+        relations: ['restaurant'],
+      });
+
+      if (!dish) {
+        return { ok: false, error: 'Dish not found' };
+      }
+
+      if (dish.restaurant.ownerId !== owner.id) {
+        return { ok: false, error: 'only can delete dish to own restaurant' };
+      }
+
+      await this.dishes.delete({ id: deleteDishInput.dishId });
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Could not delete dish' };
     }
   }
 }
