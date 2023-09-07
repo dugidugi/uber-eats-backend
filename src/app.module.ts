@@ -21,6 +21,8 @@ import { Verification } from './users/entities/verification.entity';
 import { EmailModule } from './email/email.module';
 import { Category } from './restaurants/entities/category.entity';
 import { Dish } from './restaurants/entities/dish.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
 
 console.log(process.env.NODE_ENV);
 
@@ -52,7 +54,7 @@ console.log(process.env.NODE_ENV);
       database: process.env.DB_NAME,
       logging: true,
       synchronize: process.env.NODE_ENV !== 'prod',
-      entities: [Restaurant, User, Verification, Category, Dish],
+      entities: [Restaurant, User, Verification, Category, Dish, Order],
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
@@ -70,6 +72,7 @@ console.log(process.env.NODE_ENV);
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     AuthModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],
