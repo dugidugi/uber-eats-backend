@@ -5,6 +5,7 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
+import { IsEnum, IsNumber } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
@@ -54,11 +55,13 @@ export class Order extends CoreEntity {
   @JoinTable()
   dishes?: Dish[];
 
-  @Field((type) => Float)
-  @Column()
+  @Field((type) => Float, { nullable: true })
+  @Column({ nullable: true })
+  @IsNumber()
   total: number;
 
   @Field((type) => OrderStatus)
   @Column({ type: 'enum', enum: OrderStatus })
+  @IsEnum(OrderStatus)
   status: OrderStatus;
 }
