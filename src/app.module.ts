@@ -23,6 +23,7 @@ import { Category } from './restaurants/entities/category.entity';
 import { Dish } from './restaurants/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 console.log(process.env.NODE_ENV);
 
@@ -54,7 +55,15 @@ console.log(process.env.NODE_ENV);
       database: process.env.DB_NAME,
       logging: true,
       synchronize: process.env.NODE_ENV !== 'prod',
-      entities: [Restaurant, User, Verification, Category, Dish, Order],
+      entities: [
+        Restaurant,
+        User,
+        Verification,
+        Category,
+        Dish,
+        Order,
+        OrderItem,
+      ],
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
