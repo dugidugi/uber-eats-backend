@@ -133,6 +133,24 @@ export class OrderService {
     }
   }
 
+  async canSeeOrder(user: User, order: Order): Promise<boolean> {
+    let canSee = true;
+
+    if (user.role === UserRole.Client && order.customerId !== user.id) {
+      canSee = false;
+    }
+
+    if (user.role === UserRole.Rider && order.riderId !== user.id) {
+      canSee = false;
+    }
+
+    if (user.role === UserRole.Owner && order.restaurant.ownerId !== user.id) {
+      canSee = false;
+    }
+
+    return canSee;
+  }
+
   async getOrder(
     { orderId }: GetOrderInput,
     user: User,
@@ -143,28 +161,11 @@ export class OrderService {
         relations: ['restaurant'],
       });
 
-      let canSee = true;
-
       if (!order) {
         return { ok: false, error: 'Order not found.' };
       }
 
-      if (user.role === UserRole.Client && order.customerId !== user.id) {
-        canSee = false;
-      }
-
-      if (user.role === UserRole.Rider && order.riderId !== user.id) {
-        canSee = false;
-      }
-
-      if (
-        user.role === UserRole.Owner &&
-        order.restaurant.ownerId !== user.id
-      ) {
-        canSee = false;
-      }
-
-      if (!canSee) {
+      if (!this.canSeeOrder(user, order)) {
         return { ok: false, error: 'You cannot see this.' };
       }
 
