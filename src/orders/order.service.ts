@@ -9,6 +9,7 @@ import { OrderItem } from './entities/order-item.entity';
 import { Dish } from 'src/restaurants/entities/dish.entity';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
+import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -172,6 +173,48 @@ export class OrderService {
       return { ok: true, order };
     } catch (error) {
       return { ok: false, error: 'Could not get order.' };
+    }
+  }
+
+  async editOrder(
+    { id, status }: EditOrderInput,
+    user: User,
+  ): Promise<EditOrderOutput> {
+    try {
+      const order = await this.orders.findOne({ where: { id } });
+      if (!order) {
+        return { ok: false, error: 'Order not found.' };
+      }
+
+      if (!this.canSeeOrder(user, order)) {
+        return { ok: false, error: 'You cannot do that.' };
+      }
+
+      let canEdit = true;
+      if (user.role === UserRole.Client) {
+        canEdit = false;
+      }
+      if (user.role === UserRole.Owner) {
+        if (status !== 'Cooking' && status !== 'Cooked') {
+          canEdit = false;
+        }
+      }
+
+      if (user.role === UserRole.Rider) {
+        if (status !== 'PickedUp' && status !== 'Delivered') {
+          canEdit = false;
+        }
+      }
+
+      if (!canEdit) {
+        return { ok: false, error: 'You cannot do that.' };
+      }
+
+      await this.orders.save({ id: id, status });
+
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: 'Could not edit order.' };
     }
   }
 }
