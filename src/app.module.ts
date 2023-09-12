@@ -68,7 +68,23 @@ console.log(process.env.NODE_ENV);
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      context: ({ req }) => ({ user: req['user'] }),
+
+      subscriptions: {
+        'subscriptions-transport-ws': {
+          onConnect: (connectionParams) => {
+            return {
+              token: connectionParams['X-JWT'],
+            };
+          },
+        },
+      },
+      context: ({ req }) => {
+        const TOKEN_KEY = 'x-jwt';
+
+        return {
+          token: req.headers[TOKEN_KEY],
+        };
+      },
     }),
     RestaurantsModule,
     UsersModule,
@@ -86,10 +102,4 @@ console.log(process.env.NODE_ENV);
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(jwtMiddleWare)
-      .forRoutes({ path: '/graphql', method: RequestMethod.ALL });
-  }
-}
+export class AppModule {}

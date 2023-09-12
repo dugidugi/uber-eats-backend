@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { OrderService } from './order.service';
 import { Role } from 'src/auth/auth.decorator';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
@@ -7,6 +7,9 @@ import { User } from 'src/users/entities/user.entity';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
+import { PubSub } from 'graphql-subscriptions';
+
+const pubsub = new PubSub();
 
 @Resolver()
 export class OrderResolver {
@@ -49,5 +52,20 @@ export class OrderResolver {
     @AuthUser() user: User,
   ): Promise<EditOrderOutput> {
     return this.orderService.editOrder(editOrderInput, user);
+  }
+
+  @Role(['Any'])
+  @Mutation(() => Boolean)
+  foodReady(@AuthUser() user: User) {
+    pubsub.publish('newOrder', {
+      orderEvent: 'Your food is ready',
+    });
+    return true;
+  }
+
+  @Role(['Any'])
+  @Subscription(() => String)
+  orderEvent(@AuthUser() user: User) {
+    return pubsub.asyncIterator('newOrder');
   }
 }
