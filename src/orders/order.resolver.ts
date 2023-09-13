@@ -57,16 +57,19 @@ export class OrderResolver {
 
   @Role(['Any'])
   @Mutation(() => Boolean)
-  foodReady(@AuthUser() user: User) {
+  foodReady(@AuthUser() user: User, @Args('orderId') orderId: number) {
     this.pubsub.publish('newOrder', {
-      orderEvent: 'Your food is ready',
+      orderId,
     });
     return true;
   }
 
   @Role(['Any'])
-  @Subscription(() => String)
-  orderEvent(@AuthUser() user: User) {
+  @Subscription(() => String, {
+    filter: (payload, variables) => payload.orderId === variables.orderId,
+    resolve: (payload) => `Your order ${payload.orderId} is ready!`,
+  })
+  orderEvent(@Args('orderId') orderId: number, @AuthUser() user: User) {
     return this.pubsub.asyncIterator('newOrder');
   }
 }
