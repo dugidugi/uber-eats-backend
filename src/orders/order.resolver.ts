@@ -10,15 +10,14 @@ import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
 import { PUB_SUB } from 'src/common/common.constant';
+import { Order } from './entities/order.entity';
 
-@Resolver()
+@Resolver((of) => Order)
 export class OrderResolver {
-  private readonly orderService: OrderService;
-  @Inject(PUB_SUB) private readonly pubsub: PubSub;
-
-  constructor(orderService: OrderService) {
-    this.orderService = orderService;
-  }
+  constructor(
+    private readonly orderService: OrderService,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
+  ) {}
 
   @Role(['Client'])
   @Mutation(() => CreateOrderOutput)
