@@ -8,12 +8,14 @@ import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { PubSub } from 'graphql-subscriptions';
-
-const pubsub = new PubSub();
+import { Inject } from '@nestjs/common';
+import { PUB_SUB } from 'src/common/common.constant';
 
 @Resolver()
 export class OrderResolver {
   private readonly orderService: OrderService;
+  @Inject(PUB_SUB) private readonly pubsub: PubSub;
+
   constructor(orderService: OrderService) {
     this.orderService = orderService;
   }
@@ -57,7 +59,7 @@ export class OrderResolver {
   @Role(['Any'])
   @Mutation(() => Boolean)
   foodReady(@AuthUser() user: User) {
-    pubsub.publish('newOrder', {
+    this.pubsub.publish('newOrder', {
       orderEvent: 'Your food is ready',
     });
     return true;
@@ -66,6 +68,6 @@ export class OrderResolver {
   @Role(['Any'])
   @Subscription(() => String)
   orderEvent(@AuthUser() user: User) {
-    return pubsub.asyncIterator('newOrder');
+    return this.pubsub.asyncIterator('newOrder');
   }
 }
