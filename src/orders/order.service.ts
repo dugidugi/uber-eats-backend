@@ -12,6 +12,7 @@ import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import {
   NEW_COOKED_ORDER,
+  NEW_ORDER_UPDATE,
   NEW_PENDING_ORDER,
   PUB_SUB,
 } from 'src/common/common.constant';
@@ -196,7 +197,6 @@ export class OrderService {
     try {
       const order = await this.orders.findOne({
         where: { id },
-        relations: ['restaurant'],
       });
       if (!order) {
         return { ok: false, error: 'Order not found.' };
@@ -228,16 +228,22 @@ export class OrderService {
 
       await this.orders.save({ id: id, status });
 
+      const newOrder = {
+        ...order,
+        status,
+      };
+
       if (user.role === UserRole.Owner) {
         if (status === 'Cooked') {
           await this.pubsub.publish(NEW_COOKED_ORDER, {
-            cookedOrders: {
-              ...order,
-              status,
-            },
+            cookedOrders: newOrder,
           });
         }
       }
+
+      await this.pubsub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: newOrder,
+      });
 
       return { ok: true };
     } catch (error) {
