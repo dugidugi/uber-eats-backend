@@ -10,6 +10,8 @@ import { Dish } from 'src/restaurants/entities/dish.entity';
 import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
+import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constant';
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class OrderService {
@@ -25,6 +27,9 @@ export class OrderService {
 
     @InjectRepository(Dish)
     private readonly dishes: Repository<Dish>,
+
+    @Inject(PUB_SUB)
+    private readonly pubsub: PubSub,
   ) {}
 
   async createOrder(
@@ -85,6 +90,10 @@ export class OrderService {
           items: orderItems,
         }),
       );
+
+      await this.pubsub.publish(NEW_PENDING_ORDER, {
+        pendingOrders: { order, ownerId: restaurant.ownerId },
+      });
 
       return { ok: true };
     } catch (error) {

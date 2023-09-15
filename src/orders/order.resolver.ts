@@ -9,7 +9,7 @@ import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
-import { PUB_SUB } from 'src/common/common.constant';
+import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constant';
 import { Order } from './entities/order.entity';
 
 @Resolver((of) => Order)
@@ -55,21 +55,16 @@ export class OrderResolver {
     return this.orderService.editOrder(editOrderInput, user);
   }
 
-  @Role(['Any'])
-  @Mutation(() => Boolean)
-  foodReady(@AuthUser() user: User, @Args('orderId') orderId: number) {
-    this.pubsub.publish('newOrder', {
-      orderId,
-    });
-    return true;
-  }
-
-  @Role(['Any'])
-  @Subscription(() => String, {
-    filter: (payload, variables) => payload.orderId === variables.orderId,
-    resolve: (payload) => `Your order ${payload.orderId} is ready!`,
+  @Role(['Owner'])
+  @Subscription(() => Order, {
+    filter: (payload, variables, context) => {
+      return context.user.id === payload.pendingOrders.ownerId;
+    },
+    resolve: ({ pendingOrders: { order } }) => {
+      return order;
+    },
   })
-  orderEvent(@Args('orderId') orderId: number, @AuthUser() user: User) {
-    return this.pubsub.asyncIterator('newOrder');
+  pendingOrders(@AuthUser() user: User) {
+    return this.pubsub.asyncIterator(NEW_PENDING_ORDER);
   }
 }
