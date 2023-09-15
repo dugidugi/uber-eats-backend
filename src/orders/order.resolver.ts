@@ -9,7 +9,11 @@ import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
 import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
 import { PubSub } from 'graphql-subscriptions';
 import { Inject } from '@nestjs/common';
-import { NEW_PENDING_ORDER, PUB_SUB } from 'src/common/common.constant';
+import {
+  NEW_COOKED_ORDER,
+  NEW_PENDING_ORDER,
+  PUB_SUB,
+} from 'src/common/common.constant';
 import { Order } from './entities/order.entity';
 
 @Resolver((of) => Order)
@@ -66,5 +70,15 @@ export class OrderResolver {
   })
   pendingOrders(@AuthUser() user: User) {
     return this.pubsub.asyncIterator(NEW_PENDING_ORDER);
+  }
+
+  @Role(['Rider'])
+  @Subscription(() => Order, {
+    filter: (payload, variables, context) => {
+      return true;
+    },
+  })
+  cookedOrders(@AuthUser() user: User) {
+    return this.pubsub.asyncIterator(NEW_COOKED_ORDER);
   }
 }
