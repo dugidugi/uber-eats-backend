@@ -17,6 +17,7 @@ import {
 } from 'src/common/common.constant';
 import { Order } from './entities/order.entity';
 import { UpdateOrderInput } from './dtos/update-orders.dto';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 
 @Resolver((of) => Order)
 export class OrderResolver {
@@ -91,6 +92,7 @@ export class OrderResolver {
       { input }: { input: UpdateOrderInput },
       { user }: { user: User },
     ) => {
+      console.log(order, input, user);
       if (
         order.riderId !== user.id &&
         order.customerId !== user.id &&
@@ -98,11 +100,19 @@ export class OrderResolver {
       ) {
         return false;
       }
-
       return input.id === order.id;
     },
   })
   orderUpdates(@Args('input') updateOrderInput: UpdateOrderInput) {
     return this.pubsub.asyncIterator(NEW_ORDER_UPDATE);
+  }
+
+  @Role(['Rider'])
+  @Mutation(() => TakeOrderOutput)
+  takeOrder(
+    @AuthUser() rider: User,
+    @Args('input') takeOrderInput: TakeOrderInput,
+  ) {
+    return this.orderService.takeOrder(rider, takeOrderInput);
   }
 }

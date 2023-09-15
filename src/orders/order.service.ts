@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
 import { User, UserRole } from 'src/users/entities/user.entity';
@@ -17,6 +17,7 @@ import {
   PUB_SUB,
 } from 'src/common/common.constant';
 import { PubSub } from 'graphql-subscriptions';
+import { TakeOrderInput, TakeOrderOutput } from './dtos/take-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -248,6 +249,54 @@ export class OrderService {
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not edit order.' };
+    }
+  }
+
+  async takeOrder(
+    rider: User,
+    takeOrderInput: TakeOrderInput,
+  ): Promise<TakeOrderOutput> {
+    try {
+      const order = await this.orders.findOne({
+        where: { id: takeOrderInput.id },
+      });
+      if (!order) {
+        return {
+          ok: false,
+          error: 'Order not found.',
+        };
+      }
+
+      if (order.rider) {
+        return {
+          ok: false,
+          error: 'This order already has a rider.',
+        };
+      }
+
+      await this.orders.save({
+        id: takeOrderInput.id,
+        rider,
+        status: OrderStatus.PickedUp,
+      });
+
+      await this.pubsub.publish(NEW_ORDER_UPDATE, {
+        orderUpdates: {
+          ...order,
+          rider,
+          riderId: rider.id,
+          status: OrderStatus.PickedUp,
+        },
+      });
+
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'Could not take order.',
+      };
     }
   }
 }
