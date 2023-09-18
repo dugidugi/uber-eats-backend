@@ -8,6 +8,7 @@ import {
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Role } from 'src/auth/auth.decorator';
+import { GetPaymentsOutput } from './dtos/get-payments.dto';
 
 @Resolver(() => Payment)
 export class PaymentResolver {
@@ -19,5 +20,10 @@ export class PaymentResolver {
     @AuthUser() owner: User,
   ): Promise<CreatePaymentOutput> {
     return this.paymentService.createPayment(createPaymentInput, owner);
+  }
+
+  @Role(['Owner'])
+  getPayments(@AuthUser() owner: User): Promise<GetPaymentsOutput> {
+    return this.paymentService.getPayments(owner);
   }
 }
