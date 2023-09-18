@@ -9,6 +9,7 @@ import {
 import { User } from 'src/users/entities/user.entity';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { GetPaymentsOutput } from './dtos/get-payments.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PaymentService {
@@ -75,5 +76,10 @@ export class PaymentService {
         error: 'Could not get payments',
       };
     }
+  }
+
+  @Cron('10 * * * * *')
+  myCron() {
+    console.log('cron');
   }
 }
