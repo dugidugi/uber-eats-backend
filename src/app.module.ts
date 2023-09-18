@@ -24,6 +24,8 @@ import { Dish } from './restaurants/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { PaymentsModule } from './payments/payments.module';
+import { Payment } from './payments/entities/payment.entity';
 
 console.log(process.env.NODE_ENV);
 
@@ -63,6 +65,7 @@ console.log(process.env.NODE_ENV);
         Dish,
         Order,
         OrderItem,
+        Payment,
       ],
     }),
     GraphQLModule.forRoot({
@@ -98,6 +101,7 @@ console.log(process.env.NODE_ENV);
     }),
     AuthModule,
     OrdersModule,
+    PaymentsModule,
   ],
   controllers: [],
   providers: [],
